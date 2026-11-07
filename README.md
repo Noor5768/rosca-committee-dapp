@@ -40,6 +40,8 @@ Plain HTML, CSS and JavaScript with **ethers.js v6** (loaded from a CDN). It con
 ![Deployment](screenshots/1-deployment.png)
 ![Wallet connected](screenshots/2-connected.png)
 ![Transaction](screenshots/3-transaction.png)
+![Payout](screenshots/4-payout.png)
+![Verified on Etherscan](screenshots/5-verified.png)
 
 ## Notes and limitations
 - Demo project on a testnet; not audited and not for real money.
