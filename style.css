@@ -1,0 +1,29 @@
+:root{--bg:#e9efec;--ink:#12302a;--muted:#5b6f69;--green:#0b6b4f;--gold:#c8962b;--line:#c9d6d1;--card:#fff;--bad:#a8321f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "DM Sans",system-ui,sans-serif}
+header{background:var(--green);color:#fff;padding:28px 20px}
+.wrap{max-width:860px;margin:0 auto;display:flex;gap:16px;align-items:center}
+h1,h2{font-family:"Fraunces",Georgia,serif;margin:0}
+h1{font-size:2rem}
+.tag{margin:4px 0 0;color:#cfe6dd}
+main{max-width:860px;margin:24px auto;padding:0 20px;display:grid;gap:18px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px}
+h2{font-size:1.3rem;margin-bottom:10px}
+ul,ol{padding-left:20px}
+.facts{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 20px}
+.facts li{border-bottom:1px dashed var(--line);padding:4px 0}
+.facts b{color:var(--muted);font-weight:500}
+.pot{font-family:"Fraunces",Georgia,serif;font-size:2.4rem;color:var(--gold);margin:6px 0}
+button{background:var(--green);color:#fff;border:0;border-radius:6px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;margin:4px 6px 4px 0}
+button.alt{background:#fff;color:var(--green);border:1.5px solid var(--green)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#members{list-style:none;padding:0;margin:8px 0 0;border-left:3px solid var(--line)}
+#members li{padding:6px 12px;margin-left:-3px;border-left:3px solid transparent;font-family:ui-monospace,Consolas,monospace;font-size:.88rem}
+#members li.next{border-left-color:var(--gold);background:#fbf3df;font-weight:700}
+#status{padding:10px 12px;border-radius:6px;background:#eef6f2}
+#status.err{background:#fbe6e1;color:var(--bad)}
+#txLog li{word-break:break-all;font-size:.85rem}
+a{color:var(--green)}
+footer{text-align:center;color:var(--muted);padding:20px;font-size:.9rem}
+@media(max-width:520px){h1{font-size:1.5rem}}

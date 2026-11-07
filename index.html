@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>On-Chain Committee (BC) dApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <img src="logo.svg" alt="Committee logo: members around a shared pot" width="64" height="64">
+    <div>
+      <h1>On-Chain Committee (BC)</h1>
+      <p class="tag">Everyone pays in each round. One member takes the whole pot. Runs on Sepolia.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>Wallet</h2>
+    <button id="connectBtn">Connect MetaMask</button>
+    <ul class="facts">
+      <li><b>Account:</b> <span id="acct">not connected</span></li>
+      <li><b>Network:</b> <span id="net">-</span></li>
+      <li><b>Balance:</b> <span id="bal">-</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>This round</h2>
+    <p>Pot paid to the next recipient</p>
+    <div class="pot" id="pot">- ETH</div>
+    <ul class="facts">
+      <li><b>Contribution per member:</b> <span id="contrib">-</span></li>
+      <li><b>Members joined:</b> <span id="count">-</span></li>
+      <li><b>Round:</b> <span id="round">-</span></li>
+      <li><b>Paid this round:</b> <span id="paid">-</span></li>
+      <li><b>Next recipient:</b> <span id="recipient">-</span></li>
+    </ul>
+    <h2 style="margin-top:16px">Payout order</h2>
+    <ol id="members"><li>Connect your wallet to see members.</li></ol>
+    <button id="joinBtn" disabled>Join committee</button>
+    <button id="payBtn" disabled>Pay contribution</button>
+    <button id="refreshBtn" class="alt" disabled>Refresh</button>
+  </section>
+
+  <section>
+    <h2>Transactions</h2>
+    <p id="status">Connect MetaMask to begin.</p>
+    <ul id="txLog"></ul>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <ol>
+      <li>Members click <b>Join committee</b> until all seats are filled.</li>
+      <li>Each round, every member clicks <b>Pay contribution</b>.</li>
+      <li>When the last member pays, the contract sends the full pot to that round's recipient.</li>
+      <li>Rounds continue until every member has received the pot once.</li>
+    </ol>
+    <p>
+      Need test ETH? <a href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia" target="_blank" rel="noopener">Sepolia faucet</a> |
+      <a id="scanLink" href="#" target="_blank" rel="noopener">View contract on Etherscan</a>
+    </p>
+  </section>
+</main>
+
+<footer>MG3012 Blockchain Technology for Business, Assignment 2</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+  const CONTRACT_ADDRESS = "0x0A6c4D6cb33e73b6D291C67F1cEa4dcf30A43BDf";
+  const SEPOLIA_ID = 11155111n;
+  const ABI = [
+    "function join()",
+    "function contribute() payable",
+    "function getMembers() view returns (address[])",
+    "function getRoundInfo() view returns (uint256 contributionWei, uint256 size, uint256 memberCount, uint256 currentRound, uint256 paidThisRound, address recipient, bool completed)",
+    "function hasPaid(address who) view returns (bool)"
+  ];
+
+  let provider, signer, contract, account, contributionWei = 0n;
+  const $ = id => document.getElementById(id);
+  const short = a => a.slice(0, 6) + "..." + a.slice(-4);
+  const eth = w => ethers.formatEther(w) + " ETH";
+
+  function say(msg, isErr) {
+    $("status").textContent = msg;
+    $("status").className = isErr ? "err" : "";
+  }
+
+  async function connect() {
+    if (!window.ethereum) return say("MetaMask not found. Install the extension and reload.", true);
+    if (CONTRACT_ADDRESS.includes("YOUR")) return say("Paste your deployed contract address into CONTRACT_ADDRESS in index.html.", true);
+    try {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      if ((await provider.getNetwork()).chainId !== SEPOLIA_ID) {
+        await provider.send("wallet_switchEthereumChain", [{ chainId: "0xaa36a7" }]);
+        provider = new ethers.BrowserProvider(window.ethereum);
+      }
+      signer = await provider.getSigner();
+      account = await signer.getAddress();
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+      $("acct").textContent = account;
+      $("net").textContent = "Sepolia (11155111)";
+      $("scanLink").href = "https://sepolia.etherscan.io/address/" + CONTRACT_ADDRESS;
+      $("refreshBtn").disabled = false;
+      window.ethereum.on("accountsChanged", () => location.reload());
+      window.ethereum.on("chainChanged", () => location.reload());
+      say("Wallet connected.");
+      await refresh();
+    } catch (e) {
+      say("Could not connect: " + (e.shortMessage || e.message), true);
+    }
+  }
+
+  async function refresh() {
+    try {
+      $("bal").textContent = Number(ethers.formatEther(await provider.getBalance(account))).toFixed(4) + " SepoliaETH";
+      const [contrib, size, count, round, paidNow, recipient, done] = await contract.getRoundInfo();
+      const members = await contract.getMembers();
+      const paidFlags = await Promise.all(members.map(m => contract.hasPaid(m)));
+      contributionWei = contrib;
+
+      $("contrib").textContent = eth(contrib);
+      $("pot").textContent = eth(contrib * size);
+      $("count").textContent = count + " of " + size;
+      $("round").textContent = done ? "finished" : (Number(round) + 1) + " of " + size;
+      $("paid").textContent = paidNow + " of " + size;
+      $("recipient").textContent = done ? "Committee finished" :
+        (count < size ? "Waiting for members to join" : short(recipient));
+
+      const list = $("members");
+      list.innerHTML = "";
+      if (members.length === 0) list.innerHTML = "<li>No members yet. Be the first to join.</li>";
+      members.forEach((m, i) => {
+        const li = document.createElement("li");
+        const mine = m.toLowerCase() === account.toLowerCase();
+        li.textContent = (i + 1) + ". " + short(m) + (mine ? " (you)" : "") +
+          (!done && count == size ? (paidFlags[i] ? "  paid" : "  waiting") : "");
+        if (!done && count == size && m === recipient) li.className = "next";
+        list.appendChild(li);
+      });
+
+      const isMember = members.some(m => m.toLowerCase() === account.toLowerCase());
+      const iPaid = paidFlags[members.findIndex(m => m.toLowerCase() === account.toLowerCase())];
+      $("joinBtn").disabled = isMember || count >= size;
+      $("payBtn").disabled = !isMember || count < size || done || !!iPaid;
+    } catch (e) {
+      say("Could not read the contract. Check the address and network. " + (e.shortMessage || e.message), true);
+    }
+  }
+
+  async function send(label, action) {
+    try {
+      say("Confirm \"" + label + "\" in MetaMask...");
+      const tx = await action();
+      say("Transaction sent. Waiting for confirmation...");
+      const receipt = await tx.wait();
+      say(label + " confirmed in block " + receipt.blockNumber + ".");
+      const li = document.createElement("li");
+      li.innerHTML = label + ": <a target='_blank' rel='noopener' href='https://sepolia.etherscan.io/tx/" +
+        tx.hash + "'>" + tx.hash + "</a>";
+      $("txLog").prepend(li);
+      await refresh();
+    } catch (e) {
+      say("Failed: " + (e.reason || e.shortMessage || e.message), true);
+    }
+  }
+
+  $("connectBtn").onclick = connect;
+  $("refreshBtn").onclick = refresh;
+  $("joinBtn").onclick = () => send("Join committee", () => contract.join());
+  $("payBtn").onclick = () => send("Pay contribution", () => contract.contribute({ value: contributionWei }));
+</script>
+</body>
+</html>
