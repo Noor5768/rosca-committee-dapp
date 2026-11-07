@@ -1,13 +1,12 @@
 # On-Chain Committee (BC) dApp
 
 **MG3012 Blockchain Technology for Business, Assignment 2**
-**Student:** YOUR NAME | **Roll No:** YOUR ROLL NUMBER
+**Student:** Noor Minallah Chaudhry | **Roll No:** 24i-5579
 
 A small decentralized app that runs a *committee* (also called a BC or ROSCA, a rotating savings group) on the Sepolia testnet. Members each pay the same amount every round, and the whole pot goes to one member per round until everyone has received it once. The smart contract replaces the trusted "committee holder": nobody can run off with the money.
 
-- **Contract address (Sepolia):** `0xYOUR_CONTRACT_ADDRESS_HERE`
-- **Etherscan:** https://sepolia.etherscan.io/address/0xYOUR_CONTRACT_ADDRESS_HERE
-- **Live demo (GitHub Pages, optional):** add link here
+- **Contract address (Sepolia):** `0x0A6c4D6cb33e73b6D291C67F1cEa4dcf30A43BDf`
+- **Etherscan:** https://sepolia.etherscan.io/address/0x0A6c4D6cb33e73b6D291C67F1cEa4dcf30A43BDf
 
 ## How it works
 1. The contract is deployed with a contribution amount and a committee size (for the demo: 0.001 ETH, 2 members).
